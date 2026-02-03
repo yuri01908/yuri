@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>アリスToDo</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f6f2ff;
+      padding: 20px;
+    }
+    h1 { color: #6b4eff; }
+    .todo { margin: 8px 0; }
+    .rabbit {
+      margin-top: 15px;
+      padding: 10px;
+      background: #fff;
+      border-left: 5px solid #6b4eff;
+    }
+    .story {
+      margin-top: 20px;
+      padding: 15px;
+      background: #fff;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🐇 アリスToDoリスト</h1>
+
+<p>ToDoは3〜5個まで設定してください</p>
+<div id="todoList"></div>
+
+<button onclick="checkStory()">物語を読む</button>
+
+<div class="rabbit" id="rabbitMessage">
+  白うさぎ「今日はまだ始まったばかりだよ！」
+</div>
+
+<div class="story" id="story">
+  <h2>📖 不思議の国のアリス</h2>
+  <p>
+    アリスは野原でうとうとしていると、  
+    チョッキを着た白うさぎが駆けていくのを見ました――。
+  </p>
+</div>
+
+<script>
+  const todos = [
+    { text: "朝起きる", done: false },
+    { text: "机を片付ける", done: false },
+    { text: "今日の予定を書く", done: false }
+  ];
+
+  const praises = [
+    "すごいよ！時間通りだ！",
+    "その調子、その調子！",
+    "急がないと！でも立派だよ！",
+    "君ならできると思ってた！"
+  ];
+
+  const todoList = document.getElementById("todoList");
+  const rabbitMessage = document.getElementById("rabbitMessage");
+
+  function renderTodos() {
+    todoList.innerHTML = "";
+    todos.forEach((todo, index) => {
+      const div = document.createElement("div");
+      div.className = "todo";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = todo.done;
+
+      checkbox.onchange = () => {
+        todo.done = checkbox.checked;
+        if (todo.done) {
+          const praise = praises[Math.floor(Math.random() * praises.length)];
+          rabbitMessage.textContent = `🐇 白うさぎ「${praise}」`;
+        }
+      };
+
+      div.appendChild(checkbox);
+      div.appendChild(document.createTextNode(" " + todo.text));
+      todoList.appendChild(div);
+    });
+  }
+
+  function checkStory() {
+    const allDone = todos.every(t => t.done);
+    const story = document.getElementById("story");
+
+    if (allDone) {
+      story.style.display = "block";
+      rabbitMessage.textContent = "🐇 白うさぎ「約束通り、物語の続きだよ！」";
+    } else {
+      alert("⚠️ 今日のToDoをすべて達成しないと物語は読めません！");
+    }
+  }
+
+  renderTodos();
+</script>
+
+</body>
+</html>
