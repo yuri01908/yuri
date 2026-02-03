@@ -1,105 +1,156 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>アリスToDo</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #f6f2ff;
-      padding: 20px;
-    }
-    h1 { color: #6b4eff; }
-    .todo { margin: 8px 0; }
-    .rabbit {
-      margin-top: 15px;
-      padding: 10px;
-      background: #fff;
-      border-left: 5px solid #6b4eff;
-    }
-    .story {
-      margin-top: 20px;
-      padding: 15px;
-      background: #fff;
-      display: none;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>🐇 アリスToDo</title>
+<style>
+  body {
+    font-family: sans-serif;
+    background: #bfe6ff; /* アリスの服の水色 */
+    padding: 20px;
+  }
+  h1 { color: #2b4c7e; }
+
+  .page { display: none; }
+  .active { display: block; }
+
+  .todo {
+    margin: 8px 0;
+  }
+
+  input[type="text"] {
+    width: 220px;
+  }
+
+  .rabbit {
+    margin-top: 15px;
+    background: white;
+    padding: 10px;
+    border-left: 5px solid #2b4c7e;
+  }
+
+  button {
+    margin-top: 10px;
+  }
+
+  .story {
+    background: white;
+    padding: 15px;
+  }
+</style>
 </head>
 <body>
 
-<h1>🐇 アリスToDoリスト</h1>
+<h1>🐇 アリスToDo</h1>
 
-<p>ToDoは3〜5個まで設定してください</p>
-<div id="todoList"></div>
+<button onclick="showPage('todo')">ToDo</button>
+<button onclick="showPage('story')">物語</button>
 
-<button onclick="checkStory()">物語を読む</button>
-
-<div class="rabbit" id="rabbitMessage">
-  白うさぎ「今日はまだ始まったばかりだよ！」
+<!-- ToDoページ -->
+<div id="todo" class="page active">
+  <h2>今日のToDo（5個）</h2>
+  <div id="todoList"></div>
+  <div class="rabbit" id="rabbitMessage">
+    白うさぎ「今日は何をするんだい？」
+  </div>
 </div>
 
-<div class="story" id="story">
+<!-- 物語ページ -->
+<div id="story" class="page">
   <h2>📖 不思議の国のアリス</h2>
-  <p>
-    アリスは野原でうとうとしていると、  
-    チョッキを着た白うさぎが駆けていくのを見ました――。
-  </p>
+  <div class="story" id="storyText"></div>
 </div>
 
 <script>
-  const todos = [
-    { text: "朝起きる", done: false },
-    { text: "机を片付ける", done: false },
-    { text: "今日の予定を書く", done: false }
-  ];
+const praises = [
+  "すごいよ！",
+  "その調子だ！",
+  "急がないと！でも立派だよ！",
+  "君ならできると思ってた！"
+];
 
-  const praises = [
-    "すごいよ！時間通りだ！",
-    "その調子、その調子！",
-    "急がないと！でも立派だよ！",
-    "君ならできると思ってた！"
-  ];
+const stories = [
+  "アリスは野原で眠りかけていると、白うさぎが走っていくのを見ました。",
+  "うさぎ穴に落ちたアリスは、不思議な世界へと迷い込みます。",
+  "「ここはどこ？」アリスは不思議な扉の前に立っていました。",
+  "チェシャ猫が現れて、にやりと笑いました。",
+  "女王の城が見えてきました…。"
+];
 
-  const todoList = document.getElementById("todoList");
-  const rabbitMessage = document.getElementById("rabbitMessage");
+const today = new Date().toDateString();
+const savedDate = localStorage.getItem("date");
 
-  function renderTodos() {
-    todoList.innerHTML = "";
-    todos.forEach((todo, index) => {
-      const div = document.createElement("div");
-      div.className = "todo";
+if (today !== savedDate) {
+  localStorage.setItem("date", today);
+  localStorage.setItem("todos", JSON.stringify(
+    Array(5).fill().map(() => ({ text: "", done: false }))
+  ));
+}
 
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.checked = todo.done;
+let todos = JSON.parse(localStorage.getItem("todos"));
+let progress = Number(localStorage.getItem("progress") || 0);
 
-      checkbox.onchange = () => {
-        todo.done = checkbox.checked;
-        if (todo.done) {
-          const praise = praises[Math.floor(Math.random() * praises.length)];
-          rabbitMessage.textContent = `🐇 白うさぎ「${praise}」`;
-        }
-      };
+const todoList = document.getElementById("todoList");
+const rabbitMessage = document.getElementById("rabbitMessage");
+const storyText = document.getElementById("storyText");
 
-      div.appendChild(checkbox);
-      div.appendChild(document.createTextNode(" " + todo.text));
-      todoList.appendChild(div);
-    });
+function showPage(id) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  if (id === "story") loadStory();
+}
+
+function renderTodos() {
+  todoList.innerHTML = "";
+  todos.forEach((todo, index) => {
+    const div = document.createElement("div");
+    div.className = "todo";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = todo.done;
+
+    checkbox.onchange = () => {
+      todo.done = checkbox.checked;
+      localStorage.setItem("todos", JSON.stringify(todos));
+      if (todo.done) {
+        rabbitMessage.textContent =
+          "🐇 白うさぎ「" + praises[Math.floor(Math.random()*praises.length)] + "」";
+      }
+    };
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.value = todo.text;
+    input.placeholder = "やることを書く";
+
+    input.oninput = () => {
+      todo.text = input.value;
+      localStorage.setItem("todos", JSON.stringify(todos));
+    };
+
+    div.appendChild(checkbox);
+    div.appendChild(input);
+    todoList.appendChild(div);
+  });
+}
+
+function loadStory() {
+  const allDone = todos.every(t => t.done && t.text.trim() !== "");
+  if (!allDone) {
+    storyText.innerHTML = "⚠️ 今日のToDoをすべて達成しないと物語は読めません。";
+    return;
   }
 
-  function checkStory() {
-    const allDone = todos.every(t => t.done);
-    const story = document.getElementById("story");
-
-    if (allDone) {
-      story.style.display = "block";
-      rabbitMessage.textContent = "🐇 白うさぎ「約束通り、物語の続きだよ！」";
-    } else {
-      alert("⚠️ 今日のToDoをすべて達成しないと物語は読めません！");
-    }
+  if (progress < stories.length) {
+    storyText.innerHTML = stories[progress];
+    localStorage.setItem("progress", progress + 1);
+  } else {
+    storyText.innerHTML = "物語はここで一旦おしまいです。また明日ね。";
   }
+}
 
-  renderTodos();
+renderTodos();
 </script>
 
 </body>
